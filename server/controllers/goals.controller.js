@@ -2,15 +2,25 @@ const { geoSearch } = require('../models/Goal');
 //const Goal = require('../models/Goal');
 const databaseController = require('../database/dbController');
 const Goal = require('../database/goals.scheme');
+const { ObjectId } = require('mongodb');
 
 const getAllGoals = (request, response) => {
     const goals = []
 
-    databaseController.getItems("goals", {}).stream()
+    databaseController.getItems("goals", {}).toArray()
+        .then(goals => response.status(200).json(goals))
+    /*cursor.stream()
         .on("data", data => {
             goals.push(data)
         })
-        .on("end", () => response.status(200).json(goals));
+        .on("end", () => response.status(200).json(goals)); */
+}
+
+const getGoalById = (request, response) => {
+    const goalId = request.params.id;
+
+    databaseController.getItem("goals", {"_id": ObjectId(goalId)})
+        .then(goal => response.status(200).json(goal));
 }
 
 
@@ -29,28 +39,10 @@ const createGoal = (request, response) => {
 
 const updateGoal = async(request, response) => {
     const goalId = request.params.id;
-    const goal = await Goal.findById(goalId);
-
-    if(!goal) {
-        response.status(404);
-        throw new Error('Goal с таким id не найден');
-    }
-
-    //TODO проблема с обработкой ошибки. Проблема в async
-
-    if(!request.body.text) {
-        response.status(400);
-        throw new Error('Необходимо ввести данные в поле "Текст"');
-    }
-
-    Goal.findByIdAndUpdate(goalId, request.body, {new: true})
-        .then(updatedGoal => response.status(200).json(updatedGoal))
-        .catch(error => {
-            response.status(400);
-            console.log(error);
-            throw new Error(error.message);
-        })
-
+    const newData = request.body;
+    
+    databaseController.changeItem("goals", {"_id": ObjectId(goalId)}, newData)
+        .then(result => response.status(200).json(result))
 }
 
-module.exports = {getAllGoals, createGoal, updateGoal};
+module.exports = {getAllGoals, getGoalById, createGoal, updateGoal};

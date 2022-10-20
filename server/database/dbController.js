@@ -20,8 +20,16 @@ const getItems = (collectionName, query) => {
     if(!database) throw new Error("Server error");
 
     const collection = database.collection(collectionName);
-    
+
     return collection.find(query);
+}
+
+const getItem = (collectionName, query) => {
+    if(!database) throw new Error("Server error");
+
+    const collection = database.collection(collectionName);
+    
+    return collection.findOne(query);
 }
 
 const createItem = (collectionName, item) => {
@@ -32,12 +40,12 @@ const createItem = (collectionName, item) => {
     return collection.insertOne(item);
 }
 
-const changeItem = (collectionName, newItemData) => {
+const changeItem = (collectionName, query, newData) => {
     if(!database) throw new Error("Server error");
 
     const collection = database.collection(collectionName);
     
-    return collection.insertOne(item);
+    return collection.updateOne(query, {$set: newData});
 }
 
-module.exports = {connectDBClient, getItems, createItem};
+module.exports = {connectDBClient, getItems, getItem, createItem, changeItem};

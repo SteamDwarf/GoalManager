@@ -7,6 +7,7 @@ router.route('/')
     .post(goalsController.createGoal)
 
 router.route('/:id')
+    .get(goalsController.getGoalById)
     .put(goalsController.updateGoal)
     .delete()
 
