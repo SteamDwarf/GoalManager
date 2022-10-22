@@ -9,6 +9,6 @@ router.route('/')
 router.route('/:id')
     .get(goalsController.getGoalById)
     .put(goalsController.updateGoal)
-    .delete()
+    .delete(goalsController.deleteGoal)
 
 module.exports = router;

@@ -1,19 +1,11 @@
-const { geoSearch } = require('../models/Goal');
-//const Goal = require('../models/Goal');
 const databaseController = require('../database/dbController');
-const Goal = require('../database/goals.scheme');
 const { ObjectId } = require('mongodb');
+const { response } = require('express');
+const Goal = require('../database/goals.cheme');
 
 const getAllGoals = (request, response) => {
-    const goals = []
-
     databaseController.getItems("goals", {}).toArray()
         .then(goals => response.status(200).json(goals))
-    /*cursor.stream()
-        .on("data", data => {
-            goals.push(data)
-        })
-        .on("end", () => response.status(200).json(goals)); */
 }
 
 const getGoalById = (request, response) => {
@@ -37,12 +29,37 @@ const createGoal = (request, response) => {
 
 }
 
-const updateGoal = async(request, response) => {
+const updateGoal = (request, response, next) => {
     const goalId = request.params.id;
     const newData = request.body;
-    
-    databaseController.changeItem("goals", {"_id": ObjectId(goalId)}, newData)
+
+    databaseController.getItem("goals", {"_id": ObjectId(goalId)})
+        .then(goal => {
+            if(!goal) {
+                response.status(404);
+                throw new Error("Goal not found");
+            }
+
+            return databaseController.changeItem("goals", {"_id": ObjectId(goalId)}, newData)
+        })
         .then(result => response.status(200).json(result))
+        .catch(error => next(error));
 }
 
-module.exports = {getAllGoals, getGoalById, createGoal, updateGoal};
+const deleteGoal = (request, response, next) => {
+    const goalId = request.params.id;
+
+    databaseController.getItem("goals", {"_id": ObjectId(goalId)})
+        .then(goal => {
+            if(!goal) {
+                response.status(404);
+                throw new Error("Goal not found");
+            }
+
+            return databaseController.deleteItem("goals", {"_id": ObjectId(goalId)})
+        })
+        .then(result => response.status(200).json(result))
+        .catch(error => next(error));
+}
+
+module.exports = {getAllGoals, getGoalById, createGoal, updateGoal, deleteGoal};
